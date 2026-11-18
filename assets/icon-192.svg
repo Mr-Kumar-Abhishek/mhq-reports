@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="192" height="192" role="img" aria-label="MHQ Reports App Icon">
+  <defs>
+    <linearGradient id="bg192" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f766e" />
+      <stop offset="100%" stop-color="#1e3a8a" />
+    </linearGradient>
+  </defs>
+  <rect width="192" height="192" rx="40" fill="url(#bg192)" />
+  <circle cx="96" cy="96" r="64" fill="none" stroke="rgba(255,255,255,0.22)" stroke-width="6" />
+  <path d="M36 102 H64 L78 66 L96 130 L114 78 L128 102 H156" fill="none" stroke="#5eead4" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" />
+  <circle cx="96" cy="48" r="8" fill="#fef08a" />
+</svg>

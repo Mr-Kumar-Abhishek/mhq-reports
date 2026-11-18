@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0f766e" />
+  <meta name="description" content="Offline-first Mental Health Quotient (MHQ) multi-dimensional assessment and printable analytical report generator." />
+  <title>MHQ Reports — Offline-First Mental Health Quotient Analyzer</title>
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="icon" type="image/svg+xml" href="./assets/icon-192.svg" />
+  <link rel="stylesheet" href="./css/styles.css" />
+</head>
+<body>
+  <header class="app-header no-print">
+    <div class="header-inner">
+      <div class="brand">
+        <img src="./assets/icon-192.svg" alt="MHQ Reports Logo" class="brand-icon" width="38" height="38" />
+        <div>
+          <h1 class="brand-title">MHQ Reports</h1>
+          <p class="brand-subtitle">Offline-First Mental Health Quotient Analyzer</p>
+        </div>
+      </div>
+
+      <div class="header-status">
+        <span id="connectivity-badge" class="status-pill status-online" role="status" aria-live="polite">
+          <span class="status-dot" aria-hidden="true"></span>
+          <span id="connectivity-text">Online — Offline Ready</span>
+        </span>
+        <button id="install-pwa-btn" type="button" class="btn btn-secondary btn-sm" hidden>
+          Install App
+        </button>
+      </div>
+    </div>
+
+    <nav class="main-nav" aria-label="Primary Workspace Navigation">
+      <button type="button" class="nav-tab active" data-view="assessment" aria-controls="view-assessment">
+        1. Assessment
+      </button>
+      <button type="button" class="nav-tab" data-view="report" aria-controls="view-report">
+        2. Analytical Report
+      </button>
+      <button type="button" class="nav-tab" data-view="history" aria-controls="view-history">
+        3. Local History <span id="history-count-badge" class="count-pill">0</span>
+      </button>
+      <button type="button" class="nav-tab" data-view="docs" aria-controls="view-docs">
+        4. SRS &amp; SDLC Specs
+      </button>
+    </nav>
+  </header>
+
+  <main class="app-main">
+    <!-- PRINT-ONLY CLINICAL HEADER -->
+    <div class="print-only print-header">
+      <div class="print-header-left">
+        <strong>MHQ Analytical Wellbeing Report</strong>
+        <span>Mental Health Quotient (-100 to +200 Spectrum)</span>
+      </div>
+      <div class="print-header-right">
+        <span>Generated Offline On-Device</span>
+        <span id="print-timestamp"></span>
+      </div>
+    </div>
+
+    <!-- VIEW 1: ASSESSMENT -->
+    <section id="view-assessment" class="view-panel active" aria-labelledby="assessment-heading">
+      <div class="card hero-banner no-print">
+        <div>
+          <h2 id="assessment-heading">Multi-Dimensional MHQ Assessment</h2>
+          <p class="muted">
+            Rate 24 structured indicators across six core mental wellbeing dimensions on a <strong>1 to 9 spectrum</strong>
+            (anchored at <strong>4 = Functional Baseline [0]</strong>). All calculations, charts, and report history stay
+            <strong>100% private on your device</strong>—even completely offline.
+          </p>
+        </div>
+        <div class="preset-bar">
+          <span class="preset-label">Quick Demo Profiles:</span>
+          <button type="button" class="btn btn-outline btn-sm" data-preset="thriving">Thriving (~+168)</button>
+          <button type="button" class="btn btn-outline btn-sm" data-preset="managing">Managing (~+73)</button>
+          <button type="button" class="btn btn-outline btn-sm" data-preset="struggling">Struggling (~-31)</button>
+          <button type="button" id="reset-form-btn" class="btn btn-ghost btn-sm">Reset Form</button>
+        </div>
+      </div>
+
+      <form id="mhq-form" novalidate>
+        <div class="card">
+          <h3 class="section-title">Session Metadata</h3>
+          <div class="meta-grid">
+            <div class="field">
+              <label for="participant-alias">Participant Alias / Label</label>
+              <input id="participant-alias" name="participantAlias" type="text" maxlength="80" placeholder="Optional (e.g., Alex R. or Baseline Q4)" />
+            </div>
+            <div class="field">
+              <label for="age-group">Age Group</label>
+              <select id="age-group" name="ageGroup">
+                <option value="Prefer not to say">Prefer not to say</option>
+                <option value="18-24">18–24</option>
+                <option value="25-34">25–34</option>
+                <option value="35-44">35–44</option>
+                <option value="45-54">45–54</option>
+                <option value="55-64">55–64</option>
+                <option value="65+">65+</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="assessment-date">Assessment Date</label>
+              <input id="assessment-date" name="assessmentDate" type="date" required />
+            </div>
+          </div>
+          <div class="field" style="margin-top: 0.9rem;">
+            <label for="session-notes">Context / Clinical Reflection Notes (Included in Report)</label>
+            <textarea id="session-notes" name="notes" rows="2" maxlength="500" placeholder="Optional context (e.g., recent sleep changes, work transition, coaching check-in)..."></textarea>
+          </div>
+        </div>
+
+        <div class="card sticky-progress no-print">
+          <div class="progress-row">
+            <div>
+              <strong>Completion Progress:</strong>
+              <span id="progress-text">0 / 24 items answered</span>
+            </div>
+            <span class="scale-legend-inline">
+              <strong>1</strong> Severe Distress (-100) &middot; <strong>4</strong> Functional Baseline (0) &middot; <strong>9</strong> Optimal (+200)
+            </span>
+          </div>
+          <div class="progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="24" aria-valuenow="0" id="progress-bar-track">
+            <div id="progress-bar-fill" class="progress-fill" style="width: 0%;"></div>
+          </div>
+        </div>
+
+        <div id="questions-container" class="questions-stack"></div>
+
+        <div id="form-error-banner" class="alert alert-warning" hidden role="alert"></div>
+
+        <div class="form-actions no-print">
+          <button type="submit" class="btn btn-primary btn-lg">
+            Generate &amp; Save MHQ Report
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <!-- VIEW 2: ANALYTICAL REPORT -->
+    <section id="view-report" class="view-panel" aria-labelledby="report-heading">
+      <div class="report-toolbar no-print">
+        <div class="toolbar-left">
+          <button type="button" id="back-to-assessment-btn" class="btn btn-outline">
+            &larr; New / Edit Assessment
+          </button>
+        </div>
+        <div class="toolbar-right">
+          <button type="button" id="save-report-btn" class="btn btn-secondary">
+            Save Copy to Local History
+          </button>
+          <button type="button" id="print-report-btn" class="btn btn-primary">
+            Print / Export PDF
+          </button>
+        </div>
+      </div>
+
+      <div id="report-empty-state" class="card empty-state">
+        <h2 id="report-heading">No Active Report Generated Yet</h2>
+        <p class="muted">
+          Complete the 24-item assessment (or load one of the instant Demo Profiles) to generate a multi-dimensional MHQ report with vector charts.
+        </p>
+        <button type="button" id="go-assess-from-empty" class="btn btn-primary">Go to Assessment</button>
+      </div>
+
+      <div id="report-content" hidden></div>
+    </section>
+
+    <!-- VIEW 3: LOCAL INDEXEDDB HISTORY -->
+    <section id="view-history" class="view-panel" aria-labelledby="history-heading">
+      <div class="card history-header-card">
+        <div>
+          <h2 id="history-heading">On-Device Report History</h2>
+          <p class="muted">
+            Reports are persisted locally in your browser using <strong id="storage-mode-label">IndexedDB</strong>. Nothing is transmitted externally.
+          </p>
+        </div>
+        <div class="history-actions">
+          <button type="button" id="clear-history-btn" class="btn btn-danger-outline btn-sm">
+            Clear All Local History
+          </button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 class="section-title">Longitudinal MHQ Trend</h3>
+        <div id="history-trend-chart" class="svg-wrapper"></div>
+      </div>
+
+      <div class="card">
+        <h3 class="section-title">Saved Reports</h3>
+        <div id="history-table-container"></div>
+      </div>
+    </section>
+
+    <!-- VIEW 4: SRS & SDLC REFERENCE -->
+    <section id="view-docs" class="view-panel" aria-labelledby="docs-heading">
+      <div class="card">
+        <h2 id="docs-heading">SRS, SDLC &amp; Psychometric Specification</h2>
+        <p class="muted">
+          This Progressive Web Application is documented with a formal IEEE-aligned Software Requirements Specification
+          (<code>docs/SRS.md</code>), a 6-phase Software Development Life Cycle (<code>docs/SDLC.md</code>), and distributed under the <strong>MIT License</strong> (<code>LICENSE</code>).
+        </p>
+
+        <div class="docs-grid">
+          <div class="doc-box">
+            <h3>Asymmetric MHQ Formula (-100 to +200)</h3>
+            <p class="muted">Raw item ratings <code>r &isin; [1, 9]</code> are anchored at functional baseline <code>r = 4 &rarr; 0</code>:</p>
+            <pre class="formula-box">if r &lt; 4:  MHQ(r) = ((r - 4) / 3) * 100   // [-100, 0)
+if r &ge; 4:  MHQ(r) = ((r - 4) / 5) * 200   // [0, +200]</pre>
+            <p class="muted">Dimension scores average 4 items; overall MHQ averages all 6 dimensions.</p>
+          </div>
+
+          <div class="doc-box">
+            <h3>Offline-First PWA Architecture</h3>
+            <ul class="clean-list">
+              <li><strong>App Shell Precache:</strong> Service Worker (<code>sw.js</code>) caches HTML, CSS, ES modules, manifest, and SVG icons on install.</li>
+              <li><strong>Cache-First Fetch:</strong> Instant offline boot with zero remote CDN dependencies.</li>
+              <li><strong>Local Persistence:</strong> IndexedDB store <code>mhq_reports_db</code> with <code>localStorage</code> &amp; memory fallback.</li>
+              <li><strong>PDF Export:</strong> Pure vector SVG charts + dedicated <code>@media print</code> layout.</li>
+            </ul>
+          </div>
+        </div>
+
+        <h3 class="section-title" style="margin-top: 1.25rem;">MHQ Spectrum Tiers</h3>
+        <div class="table-scroll">
+          <table class="spec-table">
+            <thead>
+              <tr>
+                <th>Tier</th>
+                <th>Range</th>
+                <th>Functional Interpretation</th>
+              </tr>
+            </thead>
+            <tbody id="tier-spec-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- PRINT-ONLY FOOTER -->
+    <div class="print-only print-footer">
+      <span>MHQ Reports PWA (MIT License) &bull; Non-Diagnostic Wellness Summary &bull; 100% Client-Side Privacy</span>
+    </div>
+  </main>
+
+  <div id="toast-container" class="toast-container no-print" aria-live="polite" aria-atomic="true"></div>
+
+  <script type="module" src="./js/app.js"></script>
+</body>
+</html>
