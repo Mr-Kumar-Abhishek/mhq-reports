@@ -63,6 +63,8 @@ mhq-reports/
 │   ├── charts.js             # Pure SVG visual chart renderers
 │   ├── db.js                 # IndexedDB persistence + fallbacks
 │   └── app.js                # UI controller & SW registration
+├── scripts/
+│   └── build-local.mjs       # Local syntax, NFR-03 budget, verification & gh-pages sync
 └── tests/
     └── verify.mjs            # Zero-dependency Node.js verification suite
 ```
@@ -82,12 +84,19 @@ Then open `http://localhost:8080` in Chrome/Edge/Firefox:
 2. Open DevTools -> **Application** -> **Service Workers** and toggle **Offline** (or disconnect Wi-Fi) and reload the page—the full app boots cleanly offline.
 3. Try a 1-click Demo Profile (*Thriving*, *Managing*, *Struggling*) or answer all 24 questions, generate a report, and click **Print / Export PDF**.
 
-### Automated Verification
+### Local Build, Verification & GitHub Pages Sync
 
-Run the Node.js verification suite:
+All syntax checks, verification assertions, NFR-03 `< 100ms` performance checks, and `gh-pages` static asset packaging run locally without spawning extra CI runner VMs:
 
 ```powershell
-node tests/verify.mjs
+# Run syntax checks + offline PWA & NFR-03 verification locally
+node scripts/build-local.mjs
+
+# Verify locally and sync static PWA files onto the local gh-pages branch
+node scripts/build-local.mjs --sync-gh-pages
+
+# Push updated branches when ready
+git push origin main master develop gh-pages
 ```
 
 ---

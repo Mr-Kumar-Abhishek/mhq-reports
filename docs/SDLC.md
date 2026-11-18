@@ -87,8 +87,10 @@ stateDiagram-v2
      - Serve over local HTTP (`python -m http.server 8080`), verify Service Worker enters `activated` state, toggle DevTools **Offline** mode, reload page cold, complete an assessment, save to IndexedDB, and verify Print/Save as PDF output.
 
 ### Phase 5: Deployment, PWA Distribution & Cache Versioning
-- **Objectives:** Publish static artifacts cleanly while guaranteeing deterministic client cache updates.
-- **Deployment Checklist:**
+- **Objectives:** Publish static artifacts cleanly while guaranteeing deterministic client cache updates and zero wasted CI runner minutes.
+- **Local Build & Deployment Checklist:**
+  - Run `node scripts/build-local.mjs --sync-gh-pages` locally to execute syntax checks, the 9-test verification suite (including the `< 100ms` NFR-03 rendering budget), and clean static asset packaging onto the `gh-pages` branch (excluding `.github`, `tests`, and `scripts`).
+  - Push `gh-pages` so GitHub's native static `pages-build-deployment` deploys directly without spawning redundant multi-branch Ubuntu CI runner workflows.
   - Host static repository root on any HTTPS static host (GitHub Pages, Netlify, Cloudflare Pages, Nginx, or local intranet server).
   - Verify `manifest.webmanifest` is served with `application/manifest+json` (or valid JSON) and `sw.js` at scope root `./`.
   - **Cache Versioning Protocol:** Every release modifying HTML, CSS, or JS modules MUST increment `CACHE_NAME` in `sw.js` (e.g., `mhq-pwa-v1` -> `mhq-pwa-v2`). On `activate`, the Service Worker automatically deletes prior cache buckets so users never run mismatched module versions.
